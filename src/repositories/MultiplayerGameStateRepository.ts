@@ -22,7 +22,7 @@ const multiplayerGameStateModel = mongoose.model<IMultiplayerGameStateModel>('mu
 export class MultiplayerGameStateRepository implements IMultiplayerGameStateRepository {
 
   public async dbCreateMultiplayerGameState(multiplayerGameState: IMultiplayerGameState): Promise<IMultiplayerGameState> {
-    logger.debug('Try create multiplayer game state in db.');
+    logger.debug(`Try create multiplayer game state in db. GameId={multiplayerGameState.gameId}`);
 
     const createdMultiplayerGameState: IMultiplayerGameState = await MultiplayerGameStateRepository.getObject(await multiplayerGameStateModel.create(multiplayerGameState));
 
@@ -31,7 +31,7 @@ export class MultiplayerGameStateRepository implements IMultiplayerGameStateRepo
   }
 
   public async dbFindMultiplayerGameState({ gameId }: { gameId: string }): Promise<IMultiplayerGameState> {
-    logger.debug('Try find multiplayer game state in db.');
+    logger.debug(`Try find multiplayer game state in db. GameId=${gameId}`);
 
     const multiplayerGameState: IMultiplayerGameState = await MultiplayerGameStateRepository.getObject(await multiplayerGameStateModel.findOne({ gameId }));
 
@@ -40,7 +40,7 @@ export class MultiplayerGameStateRepository implements IMultiplayerGameStateRepo
   }
 
   public async dbUpdateMultiplayerGameState(gameId: string, { turn }: { turn: PlayerType }): Promise<IMultiplayerGameState> {
-    logger.debug('Try update multiplayer game state in db.');
+    logger.debug(`Try update multiplayer game state in db. GameId=${gameId}`);
 
     const multiplayerGameState: IMultiplayerGameState = await MultiplayerGameStateRepository.getObject(await multiplayerGameStateModel.findOneAndUpdate({ gameId }, { turn }, { new: true }));
 
@@ -49,7 +49,7 @@ export class MultiplayerGameStateRepository implements IMultiplayerGameStateRepo
   }
 
   public async dbDeleteMultiplayerGameState(gameId: string) {
-    logger.debug('Try delete multiplayer game state in db.');
+    logger.debug(`Try delete multiplayer game state in db. GameId=${gameId}`);
 
     const multiplayerGameState = multiplayerGameStateModel.deleteOne({ gameId });
     if (isEmpty(multiplayerGameState)) {

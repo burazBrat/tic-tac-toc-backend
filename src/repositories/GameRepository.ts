@@ -34,7 +34,7 @@ const gameModel = mongoose.model<IGameModel>('games', gameSchema);
 export class GameRepository implements IGameRepository {
 
   public async dbGetGame(gameId: string): Promise<IGame> {
-    logger.debug('Try get game from db.');
+    logger.debug(`Try get game from db. GameId=${gameId}`);
 
     const game: IGame = await GameRepository.getGame(gameId);
     if (isEmpty(game)) throw new ApolloError('Game not found', 'GAME_NOT_FOUND');
@@ -44,7 +44,7 @@ export class GameRepository implements IGameRepository {
   }
 
   public async dbCreateGame(gameId: string, state: GameStateType, type: GameType): Promise<IGame> {
-    logger.debug('Try create game in db.');
+    logger.debug(`Try create game in db. GameId=${gameId}`);
 
     const exist: IGame = await GameRepository.getGame(gameId);
     if (!isEmpty(exist)) throw new ApolloError('Game already exists', 'GAME_ALREADY_EXIST');
@@ -56,7 +56,7 @@ export class GameRepository implements IGameRepository {
   }
 
   public async dbUpdateGame(gameId: string, game: IGame | any): Promise<IGame> {
-    logger.debug('Try update game in db.');
+    logger.debug(`Try update game in db. GameId=${gameId}`);
 
     const updatedGame: IGame = await GameRepository.getObject(await gameModel.findOneAndUpdate({ gameId }, game, { new: true }));
 

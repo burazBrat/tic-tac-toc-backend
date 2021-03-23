@@ -26,7 +26,7 @@ const moveModel = mongoose.model<IMoveModel>('move', moveSchema);
 export class MoveRepository implements IMoveRepository {
 
   public async dbCreateMove(move: IMove): Promise<IMove> {
-    logger.debug('Try create move in db.');
+    logger.debug(`Try create move in db. GameId=${move.gameId}`);
 
     const createdMove: IMove = await MoveRepository.getObject(await moveModel.create(move));
 
@@ -35,7 +35,7 @@ export class MoveRepository implements IMoveRepository {
   }
 
   public async dbFindMoves(gameId: string): Promise<IMove[]> {
-    logger.debug('Try find moves from db.');
+    logger.debug(`Try find moves from db. GameId=${gameId}`);
 
     const moves: IMove[] = await MoveRepository.getObjects(await moveModel.find({ gameId }));
 
@@ -44,7 +44,7 @@ export class MoveRepository implements IMoveRepository {
   }
 
   public async dbFindMoveByPosition({ gameId, position }: { gameId: string, position: number }): Promise<IMove> {
-    logger.debug('Try find move from db.');
+    logger.debug(`Try find move from db. GameId=${gameId}`);
 
     const move: IMove = await MoveRepository.getObject(await moveModel.findOne({ gameId, position }));
 
@@ -53,7 +53,7 @@ export class MoveRepository implements IMoveRepository {
   }
 
   public async dbFindMovesByPlayer({ gameId, player }: { gameId: string, player: PlayerType }): Promise<IMove[]> {
-    logger.debug('Try find moves from db by player type.');
+    logger.debug(`Try find moves from db by player type. GameId=${gameId}`);
 
     const moves: IMove[] = await MoveRepository.getObjects(await moveModel.find({ gameId, player }));
 
