@@ -1,19 +1,19 @@
-import { isEmpty, isEqual, random } from "lodash";
-import { ApolloError, UserInputError, ValidationError } from "apollo-server-errors";
-import { ALL_GAME_POSITIONS, WINNING_COMBINATIONS } from "../config/constants";
-import { IMove } from "../models/IMove";
-import { PlayerType } from "../models/PlayerType";
-import { pubsub } from "../appbase/apolloExpress";
-import { SubscriptionType } from "../models/SubscriptionType";
-import { GameStateType } from "../models/GameStateType";
-import { IGameResult } from "../models/IGameResult";
-import { GameWinnerType } from "../models/GameWinnerType";
-import { GameType } from "../models/GameType";
-import { IGame } from "../models/IGame";
-import { logger } from "../appbase/logger";
-import { IGameRepository } from "../repositories/IGameRepository";
-import { IMoveRepository } from "../repositories/IMoveRepository";
-import { IMultiplayerGameStateRepository } from "../repositories/IMultiplayerGameStateRepository";
+import { isEmpty, isEqual, random } from 'lodash';
+import { ApolloError, UserInputError, ValidationError } from 'apollo-server-errors';
+import { ALL_GAME_POSITIONS, WINNING_COMBINATIONS } from '../config/constants';
+import { IMove } from '../models/IMove';
+import { PlayerType } from '../models/PlayerType';
+import { pubsub } from '../appbase/apolloExpress';
+import { SubscriptionType } from '../models/SubscriptionType';
+import { GameStateType } from '../models/GameStateType';
+import { IGameResult } from '../models/IGameResult';
+import { GameWinnerType } from '../models/GameWinnerType';
+import { GameType } from '../models/GameType';
+import { IGame } from '../models/IGame';
+import { logger } from '../appbase/logger';
+import { IGameRepository } from '../repositories/IGameRepository';
+import { IMoveRepository } from '../repositories/IMoveRepository';
+import { IMultiplayerGameStateRepository } from '../repositories/IMultiplayerGameStateRepository';
 
 export class MoveService {
 
@@ -29,12 +29,12 @@ export class MoveService {
   }
 
   public async makeMove(move: IMove): Promise<IMove> {
-    logger.debug("Call makeMove in MoveService.");
+    logger.debug('Call makeMove in MoveService.');
 
     const { gameId, position } = move;
 
     // ideally put in the interceptor or in the graphql validator
-    if (!ALL_GAME_POSITIONS.includes(position)) throw new ValidationError("Position is out of range");
+    if (!ALL_GAME_POSITIONS.includes(position)) throw new ValidationError('Position is out of range');
 
     const game = await this.gameRepository.dbGetGame(gameId);
     await this.validate(game, move);
@@ -46,7 +46,7 @@ export class MoveService {
       madeMove = await this.multiplayerMove(move);
     }
 
-    logger.debug("Exit from makeMove in MoveService.");
+    logger.debug('Exit from makeMove in MoveService.');
     return madeMove;
   }
 
@@ -54,14 +54,18 @@ export class MoveService {
     const { gameId, position } = move;
 
     await this.moveRepository.dbCreateMove(move);
+    const gameResult: IGameResult = await this.calculateMove(move);
     logger.info(`${PlayerType.X} player made move. GameId=${gameId}, Position=${position}`);
-    await this.calculateMove(move);
+
+    if (gameResult.state === GameStateType.FINISHED) await this.closeGame(gameResult, GameType.SINGLE);
 
     if ((await this.gameRepository.dbGetGame(gameId)).state === GameStateType.PLAYING) {
       const cpuMove = await this.createCPUMove(gameId);
       await this.moveRepository.dbCreateMove(cpuMove);
+      const gameResult: IGameResult = await this.calculateMove(cpuMove);
       logger.info(`CPU made move. GameId=${gameId}, Position=${cpuMove.position}`);
-      await this.calculateMove(cpuMove);
+
+      if (gameResult.state === GameStateType.FINISHED) await this.closeGame(gameResult, GameType.SINGLE);
     }
 
     return move;
@@ -70,20 +74,24 @@ export class MoveService {
   private async multiplayerMove(move: IMove): Promise<IMove> {
     const { gameId, position, player } = move;
 
-    if (![PlayerType.X, PlayerType.O].includes(player)) throw new UserInputError("Right player type isn't set to move");
+    if (![PlayerType.X, PlayerType.O].includes(player)) throw new UserInputError('Right player type isn\'t set to move');
 
     const multiplayerGameState = await this.multiplayerGameStateRepository.dbFindMultiplayerGameState({ gameId });
     const { turn } = multiplayerGameState;
 
-    if (turn !== move.player) throw new ApolloError("Turn is on another player", "FAULTY_PLAYER_TURN");
+    if (turn !== move.player) throw new ApolloError('Turn is on another player', 'FAULTY_PLAYER_TURN');
 
-    const nextTurn = move.player === PlayerType.X ? PlayerType.O : PlayerType.X;
-    await this.multiplayerGameStateRepository.dbUpdateMultiplayerGameState(gameId, { turn: nextTurn });
-    logger.info(`Multiplayer game turn is swapped. GameId=${gameId}, Turn=${nextTurn}`);
-
-    logger.info(`${turn} player made move. GameId=${gameId}, Position=${position}`);
     await this.moveRepository.dbCreateMove(move);
-    await this.calculateMove(move, GameType.MULTIPLAYER);
+    const gameResult: IGameResult = await this.calculateMove(move);
+    logger.info(`${turn} player made move. GameId=${gameId}, Position=${position}`);
+
+    if (gameResult.state === GameStateType.FINISHED) {
+      await this.closeGame(gameResult, GameType.MULTIPLAYER);
+    } else {
+      const nextTurn = move.player === PlayerType.X ? PlayerType.O : PlayerType.X;
+      await this.multiplayerGameStateRepository.dbUpdateMultiplayerGameState(gameId, { turn: nextTurn });
+      logger.info(`Multiplayer game turn is swapped. GameId=${gameId}, Turn=${nextTurn}`);
+    }
 
     return move;
   }
@@ -93,9 +101,9 @@ export class MoveService {
     const { state } = game;
 
 
-    if (state !== GameStateType.PLAYING) throw new ApolloError("Game isn't active", "GAME_ISN'T_ACTIVE");
+    if (state !== GameStateType.PLAYING) throw new ApolloError('Game isn\'t active', 'GAME_ISN\'T_ACTIVE');
     const isPositionAlreadyExists = !!(await this.moveRepository.dbFindMoveByPosition({ gameId, position }));
-    if (isPositionAlreadyExists) throw new ApolloError("Position already exists in game", "POSITION_ALREADY_EXIST");
+    if (isPositionAlreadyExists) throw new ApolloError('Position already exists in game', 'POSITION_ALREADY_EXIST');
   }
 
   private async createCPUMove(gameId: string): Promise<IMove> {
@@ -113,63 +121,42 @@ export class MoveService {
     });
   }
 
-  private async calculateMove(move: IMove, gameType: GameType = GameType.SINGLE): Promise<void> {
+  private async calculateMove(move: IMove): Promise<IGameResult> {
     const { gameId } = move;
 
     const moves = await this.moveRepository.dbFindMoves(gameId);
 
-    const isXWin = await this.checkWin(await MoveService.getPositionFromMoves(await this.moveRepository.dbFindMovesByPlayer({
+    if (await MoveService.checkDraw(moves)) {
+      const gameResult: IGameResult = { gameId, moves, state: GameStateType.FINISHED, winner: GameWinnerType.DRAW };
+      await MoveService.publishGameResult(gameResult);
+      return gameResult;
+    }
+
+    if (await this.checkWin(await MoveService.getPositionFromMoves(await this.moveRepository.dbFindMovesByPlayer({
       gameId,
-      player: PlayerType.X
-    })));
+      player: PlayerType.X,
+    })))) {
+      const gameResult: IGameResult = { gameId, moves, state: GameStateType.FINISHED, winner: GameWinnerType.X };
+      await MoveService.publishGameResult(gameResult);
+      return gameResult;
+    }
 
-    const isOWin = await this.checkWin(await MoveService.getPositionFromMoves(await this.moveRepository.dbFindMovesByPlayer({
+    if (await this.checkWin(await MoveService.getPositionFromMoves(await this.moveRepository.dbFindMovesByPlayer({
       gameId,
-      player: PlayerType.O
-    })));
-
-    const isDraw = moves.length === 9;
-
-    if (isXWin) {
-      const gameResult: IGameResult = {
-        gameId,
-        moves,
-        state: GameStateType.FINISHED,
-        winner: GameWinnerType.X
-      };
-      await this.closeGame(gameResult, gameType);
-      return;
+      player: PlayerType.O,
+    })))) {
+      const gameResult: IGameResult = { gameId, moves, state: GameStateType.FINISHED, winner: GameWinnerType.O };
+      await MoveService.publishGameResult(gameResult);
+      return gameResult;
     }
 
-    if (isOWin) {
-      const gameResult: IGameResult = {
-        gameId,
-        moves,
-        state: GameStateType.FINISHED,
-        winner: GameWinnerType.O
-      };
-      await this.closeGame(gameResult, gameType);
-      return;
-    }
-
-    if (isDraw) {
-      const gameResult: IGameResult = {
-        gameId,
-        moves,
-        state: GameStateType.FINISHED,
-        winner: GameWinnerType.DRAW
-      };
-      await this.closeGame(gameResult, gameType);
-      return;
-    }
-
-    await MoveService.resultPayload({ gameId, moves, state: GameStateType.PLAYING });
+    const gameResult: IGameResult = { gameId, moves, state: GameStateType.PLAYING };
+    await MoveService.publishGameResult(gameResult);
+    return gameResult;
   }
 
   private async closeGame(gameResult: IGameResult, gameType: GameType): Promise<void> {
     const { gameId, winner } = gameResult;
-
-    await MoveService.resultPayload(gameResult);
 
     await this.gameRepository.dbUpdateGame(gameId, { winner, state: GameStateType.FINISHED });
     logger.info(`Game is finished. GameId=${gameId}, Winner=${winner}`);
@@ -184,14 +171,18 @@ export class MoveService {
     return (moves).map(move => move.position);
   }
 
-  private static async resultPayload({ gameId, state, winner, moves }: IGameResult): Promise<void> {
+  private static async publishGameResult({ gameId, state, winner, moves }: IGameResult): Promise<void> {
     await pubsub.publish(SubscriptionType.GAME_RESULT, {
       gameResult: {
         gameId,
         state,
         winner,
-        moves
-      }
+        moves,
+      },
     });
+  }
+
+  private static async checkDraw(moves: IMove[]): Promise<boolean> {
+    return  ALL_GAME_POSITIONS.length === moves.length;
   }
 }
