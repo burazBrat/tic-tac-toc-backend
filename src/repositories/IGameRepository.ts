@@ -1,6 +1,6 @@
-import { IGame } from "../models/IGame";
-import { GameStateType } from "../models/GameStateType";
-import { GameType } from "../models/GameType";
+import { IGame } from '../models/IGame';
+import { GameStateType } from '../models/GameStateType';
+import { GameType } from '../models/GameType';
 
 export interface IGameRepository {
   dbGetGame(gameId: string): Promise<IGame>

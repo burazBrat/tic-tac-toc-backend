@@ -1,5 +1,5 @@
-import { IMove } from "../models/IMove";
-import { PlayerType } from "../models/PlayerType";
+import { IMove } from '../models/IMove';
+import { PlayerType } from '../models/PlayerType';
 
 export interface IMoveRepository {
   dbCreateMove(move: IMove): Promise<IMove>

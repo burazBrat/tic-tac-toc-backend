@@ -1,4 +1,4 @@
-import { IGame } from "../models/IGame";
+import { IGame } from '../models/IGame';
 
 export interface IGameService {
   createGame(game: IGame): Promise<IGame>;

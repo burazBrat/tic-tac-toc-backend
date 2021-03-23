@@ -1,6 +1,6 @@
-import { IMove } from "../models/IMove";
+import { IMove } from '../models/IMove';
 
 export interface IMoveService {
-  makeMove(move: IMove) : Promise<IMove>;
+  makeMove(move: IMove): Promise<IMove>;
 }
 

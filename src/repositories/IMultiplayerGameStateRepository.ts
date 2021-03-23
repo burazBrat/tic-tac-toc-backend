@@ -1,6 +1,5 @@
-import { IMove } from "../models/IMove";
-import { PlayerType } from "../models/PlayerType";
-import { IMultiplayerGameState } from "../models/IMultiplayerGameState";
+import { PlayerType } from '../models/PlayerType';
+import { IMultiplayerGameState } from '../models/IMultiplayerGameState';
 
 export interface IMultiplayerGameStateRepository {
   dbCreateMultiplayerGameState(multiplayerGameState: IMultiplayerGameState): Promise<IMultiplayerGameState>

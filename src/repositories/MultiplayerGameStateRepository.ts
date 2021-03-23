@@ -1,28 +1,28 @@
-import mongoose, { Document, Schema } from "mongoose";
-import { get, isEmpty } from "lodash";
-import { IMultiplayerGameState } from "../models/IMultiplayerGameState";
-import { PlayerType } from "../models/PlayerType";
-import { IMultiplayerGameStateRepository } from "./IMultiplayerGameStateRepository";
-import { logger } from "../appbase/logger";
+import mongoose, { Document, Schema } from 'mongoose';
+import { get, isEmpty } from 'lodash';
+import { IMultiplayerGameState } from '../models/IMultiplayerGameState';
+import { PlayerType } from '../models/PlayerType';
+import { IMultiplayerGameStateRepository } from './IMultiplayerGameStateRepository';
+import { logger } from '../appbase/logger';
 
 const multiplayerGameStateSchema = new Schema({
   turn: {
     type: String,
-    enum: ["X", "O"],
-    default: "X"
+    enum: ['X', 'O'],
+    default: 'X',
   },
-  gameId: String
+  gameId: String,
 });
 
 interface IMultiplayerGameStateModel extends IMultiplayerGameState, Document {
 }
 
-const multiplayerGameStateModel = mongoose.model<IMultiplayerGameStateModel>("multiplayerGameStateMode", multiplayerGameStateSchema);
+const multiplayerGameStateModel = mongoose.model<IMultiplayerGameStateModel>('multiplayerGameStateMode', multiplayerGameStateSchema);
 
 export class MultiplayerGameStateRepository implements IMultiplayerGameStateRepository {
 
   public async dbCreateMultiplayerGameState(multiplayerGameState: IMultiplayerGameState): Promise<IMultiplayerGameState> {
-    logger.debug("Try create multiplayer game state in db.");
+    logger.debug('Try create multiplayer game state in db.');
 
     const createdMultiplayerGameState: IMultiplayerGameState = await MultiplayerGameStateRepository.getObject(await multiplayerGameStateModel.create(multiplayerGameState));
 
@@ -31,7 +31,7 @@ export class MultiplayerGameStateRepository implements IMultiplayerGameStateRepo
   }
 
   public async dbFindMultiplayerGameState({ gameId }: { gameId: string }): Promise<IMultiplayerGameState> {
-    logger.debug("Try find multiplayer game state in db.");
+    logger.debug('Try find multiplayer game state in db.');
 
     const multiplayerGameState: IMultiplayerGameState = await MultiplayerGameStateRepository.getObject(await multiplayerGameStateModel.findOne({ gameId }));
 
@@ -40,7 +40,7 @@ export class MultiplayerGameStateRepository implements IMultiplayerGameStateRepo
   }
 
   public async dbUpdateMultiplayerGameState(gameId: string, { turn }: { turn: PlayerType }): Promise<IMultiplayerGameState> {
-    logger.debug("Try update multiplayer game state in db.");
+    logger.debug('Try update multiplayer game state in db.');
 
     const multiplayerGameState: IMultiplayerGameState = await MultiplayerGameStateRepository.getObject(await multiplayerGameStateModel.findOneAndUpdate({ gameId }, { turn }, { new: true }));
 
@@ -49,7 +49,7 @@ export class MultiplayerGameStateRepository implements IMultiplayerGameStateRepo
   }
 
   public async dbDeleteMultiplayerGameState(gameId: string) {
-    logger.debug("Try delete multiplayer game state in db.");
+    logger.debug('Try delete multiplayer game state in db.');
 
     const multiplayerGameState = multiplayerGameStateModel.deleteOne({ gameId });
     if (isEmpty(multiplayerGameState)) {
@@ -62,6 +62,6 @@ export class MultiplayerGameStateRepository implements IMultiplayerGameStateRepo
   }
 
   private static async getObject(dbMove: IMultiplayerGameStateModel | null): Promise<IMultiplayerGameState> {
-    return get(dbMove, "_doc");
+    return get(dbMove, '_doc');
   }
 }

@@ -183,6 +183,6 @@ export class MoveService {
   }
 
   private static async checkDraw(moves: IMove[]): Promise<boolean> {
-    return  ALL_GAME_POSITIONS.length === moves.length;
+    return ALL_GAME_POSITIONS.length === moves.length;
   }
 }

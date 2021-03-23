@@ -1,53 +1,53 @@
-import mongoose, { Document, Schema } from "mongoose";
-import { get, isEmpty } from "lodash";
-import { IGame } from "../models/IGame";
-import { IGameRepository } from "./IGameRepository";
-import { logger } from "../appbase/logger";
-import { ApolloError } from "apollo-server-errors";
-import { GameStateType } from "../models/GameStateType";
-import { GameType } from "../models/GameType";
+import mongoose, { Document, Schema } from 'mongoose';
+import { get, isEmpty } from 'lodash';
+import { IGame } from '../models/IGame';
+import { IGameRepository } from './IGameRepository';
+import { logger } from '../appbase/logger';
+import { ApolloError } from 'apollo-server-errors';
+import { GameStateType } from '../models/GameStateType';
+import { GameType } from '../models/GameType';
 
 const gameSchema = new Schema({
   gameId: String,
   type: {
     type: String,
-    enum: ["SINGLE", "MULTIPLAYER"],
-    default: "SINGLE"
+    enum: ['SINGLE', 'MULTIPLAYER'],
+    default: 'SINGLE',
   },
   state: {
     type: String,
-    enum: ["CREATED", "WAITING_FOR_SECOND_PLAYER", "PLAYING", "FINISHED"],
-    default: "CREATED"
+    enum: ['CREATED', 'WAITING_FOR_SECOND_PLAYER', 'PLAYING', 'FINISHED'],
+    default: 'CREATED',
   },
   winner: {
     type: String || null,
-    enum: ["X", "O", null],
-    default: null
-  }
+    enum: ['X', 'O', null],
+    default: null,
+  },
 });
 
 interface IGameModel extends IGame, Document {
 }
 
-const gameModel = mongoose.model<IGameModel>("games", gameSchema);
+const gameModel = mongoose.model<IGameModel>('games', gameSchema);
 
 export class GameRepository implements IGameRepository {
 
   public async dbGetGame(gameId: string): Promise<IGame> {
-    logger.debug("Try get game from db.");
+    logger.debug('Try get game from db.');
 
     const game: IGame = await GameRepository.getGame(gameId);
-    if (isEmpty(game)) throw new ApolloError("Game not found", "GAME_NOT_FOUND");
+    if (isEmpty(game)) throw new ApolloError('Game not found', 'GAME_NOT_FOUND');
 
     logger.debug(`Return game from db. GameId=${game.gameId}`);
     return game;
   }
 
   public async dbCreateGame(gameId: string, state: GameStateType, type: GameType): Promise<IGame> {
-    logger.debug("Try create game in db.");
+    logger.debug('Try create game in db.');
 
     const exist: IGame = await GameRepository.getGame(gameId);
-    if (!isEmpty(exist)) throw new ApolloError("Game already exists", "GAME_ALREADY_EXIST");
+    if (!isEmpty(exist)) throw new ApolloError('Game already exists', 'GAME_ALREADY_EXIST');
 
     const game: IGame = await GameRepository.getObject(await gameModel.create({ gameId, state, type }));
 
@@ -56,7 +56,7 @@ export class GameRepository implements IGameRepository {
   }
 
   public async dbUpdateGame(gameId: string, game: IGame | any): Promise<IGame> {
-    logger.debug("Try update game in db.");
+    logger.debug('Try update game in db.');
 
     const updatedGame: IGame = await GameRepository.getObject(await gameModel.findOneAndUpdate({ gameId }, game, { new: true }));
 
@@ -69,6 +69,6 @@ export class GameRepository implements IGameRepository {
   }
 
   private static async getObject(dbGame: IGameModel | null) {
-    return get(dbGame, "_doc");
+    return get(dbGame, '_doc');
   }
 }

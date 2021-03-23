@@ -1,6 +1,6 @@
-import { PlayerType } from "./PlayerType";
+import { PlayerType } from './PlayerType';
 
 export interface IMultiplayerGameState {
-    turn: PlayerType,
-    gameId: string,
+  turn: PlayerType,
+  gameId: string,
 }
