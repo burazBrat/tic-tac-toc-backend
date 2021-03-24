@@ -33,7 +33,7 @@ mutation create {
   createGame(game: { gameId: "gameTest", type: SINGLE}) {
     gameId
     type
-    stateMULTIPLAYER
+    state
   }
 }
 ```

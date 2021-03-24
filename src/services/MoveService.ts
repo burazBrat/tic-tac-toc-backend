@@ -1,4 +1,4 @@
-import { isEmpty, isEqual, random } from 'lodash';
+import { isEqual, random } from 'lodash';
 import { ApolloError, UserInputError, ValidationError } from 'apollo-server-errors';
 import { ALL_GAME_POSITIONS, WINNING_COMBINATIONS } from '../config/constants';
 import { IMove } from '../models/IMove';
@@ -97,10 +97,10 @@ export class MoveService {
   }
 
   private async validate(game: IGame, move: IMove): Promise<void> {
-    const { gameId, position } = move;
-    const { state } = game;
+    const { gameId, position, player } = move;
+    const { state, type } = game;
 
-
+    if (type === GameType.SINGLE && player === PlayerType.O) throw new ValidationError('Invalid player type');
     if (state !== GameStateType.PLAYING) throw new ApolloError('Game isn\'t active', 'GAME_ISN\'T_ACTIVE');
     const isPositionAlreadyExists = !!(await this.moveRepository.dbFindMoveByPosition({ gameId, position }));
     if (isPositionAlreadyExists) throw new ApolloError('Position already exists in game', 'POSITION_ALREADY_EXIST');
