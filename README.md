@@ -30,7 +30,7 @@ type: enum(string), values = ["SINGLE", "MULTIPLAYER"]
 
 ```gql
 mutation create {
-  createGame(game: { gameId: "gameTest", type: "SINGLE"}) {
+  createGame(game: { gameId: "gameTest", type: SINGLE}) {
     gameId
     type
     stateMULTIPLAYER
@@ -56,14 +56,14 @@ mutation joinGame {
 ### Make a new move
 
 ```bash
-player: enum(string), values = ["SINGLE", "MULTIPLAYER"]
+player: enum(string), values = ["X", "O"]
 position: enum(number), values = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 gameId: string
 ```
 
 ```gql
 mutation makeNewMove {
-  makeNewMove(move: { player: "X", position:0, gameId: "gameTest"}) {
+  makeNewMove(move: { player: X, position:0, gameId: "gameTest"}) {
     player
     position
     gameId

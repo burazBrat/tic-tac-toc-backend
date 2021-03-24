@@ -21,14 +21,14 @@ const typeDefs = gql`
   
   type Game {
     gameId: String
-    type: String
-    state: String
-    winner: String
+    type: GameType
+    state: GameStateType
+    winner: GameWinnerType
   }
   
   input GameInput {
-    gameId: String
-    type: String
+    gameId: String!
+    type: GameType!
   }
   
   input GameJoinInput {
@@ -45,22 +45,45 @@ const typeDefs = gql`
   
   type Move {
     _id: ID!
-    player: String
+    player: PlayerType
     position: Int
     gameId: String
   }
   
   input MoveInput {
-    player: String
+    player: PlayerType
     position: Int
     gameId: String
   }
   
   type GameResult {
     gameId: String
-    state: String
-    winner: String
+    state: GameStateType
+    winner: GameWinnerType
     moves: [Move]
+  }
+  
+  enum GameType {
+    SINGLE
+    MULTIPLAYER
+  }
+  
+  enum GameStateType {
+    CREATED
+    WAITING_FOR_SECOND_PLAYER
+    PLAYING
+    FINISHED
+  }
+  
+  enum GameWinnerType {
+    X
+    O
+    DRAW
+  }
+  
+  enum PlayerType {
+    X
+    O
   }
 `;
 
